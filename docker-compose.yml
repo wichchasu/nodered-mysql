@@ -1,0 +1,34 @@
+version: "3.7"
+
+networks:
+  db.network:
+    driver: bridge
+
+services:
+  mysql:
+    build: ./docker/mysql
+    tty: true
+    restart: always
+    container_name: db.mysql
+    networks:
+      - db.network
+    ports:
+      - "${MYSQL_PORTS}:3306"
+    volumes:
+      - "./docker/mysql/config/mysql.cnf:/etc/mysql/conf.d/custom.cnf:ro"
+      - "./docker/mysql/dbdata:/var/lib/mysql"
+      - ./docker/mysql/sqlfile:/docker-entrypoint-initdb.d
+    environment:
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+  mynodered:
+    image: nodered/node-red:latest
+    ports:
+      - "1880:1880"
+    volumes:
+      - ./node_red_data:/data
+    networks:
+      - db.network # เพิ่มส่วน networks เพื่อเชื่อมต่อกับ "db.network" ที่คุณได้สร้างไว้
+    container_name: mynodered
